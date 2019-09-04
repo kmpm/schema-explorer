@@ -17,3 +17,20 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+# Building
+
+Make sure your `$GOPATH` is set (schema explorer hasn't been updated to use go modules yet).
+
+Install [asdf](https://github.com/asdf-vm/asdf) to manage golang versions.
+
+```bash
+cd $GOPATH
+mkdir -p src/github.com/timabell
+cd src/github.com/timabell
+git clone https://github.com/timabell/schema-explorer.git
+cd schema-explorer
+asdf plugin-add golang
+asdf install golang 1.13
+./build.sh
+```
