@@ -84,6 +84,7 @@ type Column struct {
 	Nullable       bool
 }
 
+// Fk represents a foreign key
 type Fk struct {
 	Id                 int
 	Name               string
@@ -91,6 +92,7 @@ type Fk struct {
 	SourceColumns      ColumnList
 	DestinationTable   *Table
 	DestinationColumns ColumnList
+	Synthetic          bool
 }
 
 // Simplified fk constructor for single-column foreign keys
@@ -114,12 +116,40 @@ func TableFromString(value string) Table {
 	return Table{Schema: "", Name: parts[0]}
 }
 
+func (tables TableList) String() string {
+	var tableNames []string
+	for _, table := range tables {
+		tableNames = append(tableNames, table.Name)
+	}
+	return strings.Join(tableNames, ",")
+}
+
 func (columns ColumnList) String() string {
 	var columnNames []string
 	for _, col := range columns {
 		columnNames = append(columnNames, col.Name)
 	}
 	return strings.Join(columnNames, ",")
+}
+
+// Equals checks if one list contains the same as the other
+// irrespective of order
+func (columns ColumnList) Equals(other ColumnList) (same bool) {
+	// if not same size they can't be equal
+	if same = len(columns) == len(other); !same {
+		return
+	}
+	matches := 0
+	for _, c1 := range columns {
+		for _, c2 := range other {
+			if c1 == c2 {
+				matches++
+				continue
+			}
+		}
+	}
+	same = matches == len(columns)
+	return
 }
 
 func (column Column) String() string {
@@ -141,6 +171,20 @@ func (database Database) FindTable(tableToFind *Table) (table *Table) {
 	return nil
 }
 
+func (database *Database) AddFk(fk *Fk) {
+	database.Fks = append(database.Fks, fk)
+	st := database.FindTable(fk.SourceTable)
+	// hook up inbound
+	st.Fks = append(st.Fks, fk)
+	dt := database.FindTable(fk.DestinationTable)
+	if dt != nil {
+		dt.InboundFks = append(dt.InboundFks, fk)
+		for _, destCol := range fk.DestinationColumns {
+			destCol.InboundFks = append(destCol.InboundFks, fk)
+		}
+	}
+}
+
 func (table Table) FindColumn(columnName string) (index int, column *Column) {
 	for index, col := range table.Columns {
 		if col.Name == columnName {
@@ -148,4 +192,17 @@ func (table Table) FindColumn(columnName string) (index int, column *Column) {
 		}
 	}
 	return -1, nil
+}
+
+// FindColumns returns a ColumnList of given columns
+func (table Table) FindColumns(colNames ...string) (list ColumnList, err error) {
+	for _, colName := range colNames {
+		_, col := table.FindColumn(colName)
+		if col == nil {
+			err = fmt.Errorf("Column '%s' not found in table", colName)
+			return
+		}
+		list = append(list, col)
+	}
+	return
 }

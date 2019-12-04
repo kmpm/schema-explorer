@@ -84,6 +84,7 @@
         {{end}}
         <th>From</th>
         <th>To</th>
+        <th>Synthetic*</th>
     </tr>
     </thead>
     <tbody>
@@ -105,6 +106,9 @@
             <a href="tables/{{.DestinationTable}}?_rowLimit=100">
                 {{.DestinationTable}}({{.DestinationColumns}})
             </a>
+        </td>
+        <td>
+            {{.Synthetic}}
         </td>
     </tr>
     {{end}}
