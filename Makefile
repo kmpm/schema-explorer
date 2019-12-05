@@ -70,7 +70,7 @@ EXT_windows = ".exe"
 
 TESTDIR ?= ./build/tests
 TESTFILE=$(call FixPath,${TESTDIR}/gotestsum-$@-report.xml)
-GOTEST=gotestsum --junitfile ${TESTFILE} --
+GOTEST=gotestsum --format standard-verbose --junitfile ${TESTFILE} --
 
 ifeq ($(shell ${WHICH} gotestsum 2>${DEVNUL}),)
 $(info You don't have 'gotestsum' on your PATH. Will fall back to using 'go test')
@@ -261,6 +261,10 @@ test-mysql-env-cnn: $(TESTDIR)
 	go clean -testcache
 	 $(GOTEST) . 
 
+#### run various
+
+run-sqlite: sqlitedb
+	go run sse.go -driver sqlite -sqlite-file $(SQLITE_DB)
 
 run-mysql:
 	go run sse.go -driver mysql -mysql-connection-string ${MYSQL_CNN}
