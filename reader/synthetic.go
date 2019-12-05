@@ -15,36 +15,51 @@ type tablePair struct {
 	tables schema.TableList
 }
 
-type colTableMap map[string]schema.TableList
+type colTableEntry struct {
+	colName string
+	tables  schema.TableList
+}
+
+type colTableMap map[string]colTableEntry
 type pairMap map[string]tablePair
 
-func createFieldMap(database *schema.Database, cols colTableMap) {
+func colKeyGen(col *schema.Column) string {
+	if col.Name == "id" {
+		return ""
+	}
+	return fmt.Sprintf("%s|%s", col.Name, col.Type)
+}
+
+func createColTabledMap(database *schema.Database, ctmap colTableMap) {
 	for _, table := range database.Tables {
 		for _, col := range table.Columns {
-			if col.Name == "id" {
-				continue
-			}
-			if val, ok := cols[col.Name]; ok {
-				cols[col.Name] = append(val, table)
-				// log.Printf("found existing col %s. now %d", col.Name, len(cols[col.Name]))
-			} else {
-				cols[col.Name] = schema.TableList{table}
+			if key := colKeyGen(col); key != "" {
+				if val, ok := ctmap[key]; ok {
+					val.tables = append(val.tables, table)
+					ctmap[key] = val
+					// log.Printf("found existing col %s. now %d", col.Name, len(cols[col.Name]))
+				} else {
+					ctmap[key] = colTableEntry{
+						colName: col.Name,
+						tables:  schema.TableList{table}}
+				}
 			}
 		}
 	}
 }
 
 func createPairMap(cols colTableMap, pairs pairMap) {
-	for colName, table := range cols {
-		tableCount := len(table)
+	for key, entry := range cols {
+		tableCount := len(entry.tables)
+		colName := entry.colName
 		if tableCount > 1 {
-			sort.Sort(table)
-			log.Printf("candidate synthetic key for %s in tables %s", colName, table.String())
+			sort.Sort(entry.tables)
+			log.Printf("candidate synthetic key for %s in tables %s", key, entry.tables)
 			// Build table pairs
 
-			for i, t1 := range table {
+			for i, t1 := range entry.tables {
 				if i < tableCount-1 {
-					for _, t2 := range table[i+1:] {
+					for _, t2 := range entry.tables[i+1:] {
 						pair := fmt.Sprintf("%s-%s", t1.Name, t2.Name)
 						list := schema.TableList{t1, t2}
 						if val, ok := pairs[pair]; ok {
@@ -103,7 +118,7 @@ func isStringIn(target string, list []string) (pos int, ok bool) {
 func generateSyntheticKeys(database *schema.Database) {
 	// 1. Build a list of field names from all tables
 	cols := make(colTableMap)
-	createFieldMap(database, cols)
+	createColTabledMap(database, cols)
 
 	// 2. Check if any field exists in more than 1 table
 	// and 3. Get ALL common fields for possible composite keys

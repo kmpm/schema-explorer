@@ -13,7 +13,7 @@ func newFakeTable(tableName string, colNames ...string) (table *schema.Table) {
 	table.Columns = columns
 	for index, colName := range colNames {
 		cn := strings.ReplaceAll(colName, "*", "")
-		col := &schema.Column{Name: cn}
+		col := &schema.Column{Name: cn, Type: "string"}
 		col.IsInPrimaryKey = strings.HasSuffix(colName, "*")
 		columns[index] = col
 	}
