@@ -75,8 +75,12 @@ func createPairMap(cols colTableMap, pairs pairMap) {
 	}
 }
 
+// calculateQuotas checks the relationship between number of columns in the primary key
+// and how many of the "found" columns is in the primary key
+// 100 = the column(s) is same as PK.
 func calculateQuotas(p *tablePair) {
-	// log.Printf("pair %s, fields: %v", p.name, p.cols)
+	// Check primary key count for fields
+	// alone in PK is more worth then part of composite
 	sort.Strings(p.cols)
 	p.quotas = []int{0, 0}
 	for ti, table := range p.tables {
@@ -91,22 +95,24 @@ func calculateQuotas(p *tablePair) {
 				}
 			}
 		}
+		p.quotas[ti] = 0
 		if pkSize > 0 {
 			p.quotas[ti] = inPrimaryKey * 10 / pkSize * 10
 		}
-		// log.Printf("Table %s(%d) as pkSize: %d, inPrimaryKey: %d, q: %d", table.Name, ti, pkSize, inPrimaryKey, quotas[ti])
 	}
 }
 
-func (pair *tablePair) GetFkTables() (source *schema.Table, dest *schema.Table) {
+// getFkTables will return (source, dest, destQuota)
+func (pair *tablePair) getFkTables() (*schema.Table, *schema.Table, int) {
 	calculateQuotas(pair)
+	// the one with the lowest q should be source
 	src := 0
 	dst := 1
 	if pair.quotas[0] > pair.quotas[1] {
 		src = 1
 		dst = 0
 	}
-	return pair.tables[src], pair.tables[dst]
+	return pair.tables[src], pair.tables[dst], pair.quotas[dst]
 }
 
 func isStringIn(target string, list []string) (pos int, ok bool) {
@@ -126,9 +132,11 @@ func generateSyntheticKeys(database *schema.Database) {
 	createPairMap(cols, pairs)
 
 	for _, p := range pairs {
-		// Check primary key count for fields
-		// alone in PK is more worth then in combined
-		sourceTable, destTable := p.GetFkTables()
+		sourceTable, destTable, destQuota := p.getFkTables()
+		if destQuota == 0 {
+			// if the best option isn't a part of PK then skip altogether
+			continue
+		}
 		scols, _ := sourceTable.FindColumns(p.cols...)
 		dcols, _ := destTable.FindColumns(p.cols...)
 		found := false
