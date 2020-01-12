@@ -1,4 +1,4 @@
-package reader
+package implicitfk
 
 import (
 	"strings"
@@ -31,7 +31,7 @@ func newFakeDb() *schema.Database {
 	return db
 }
 
-func Test_generateImplicitKeys(t *testing.T) {
+func Test_implicitfkByName(t *testing.T) {
 	type args struct {
 		database *schema.Database
 	}
@@ -44,7 +44,7 @@ func Test_generateImplicitKeys(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			generateImplicitKeys(tt.args.database)
+			implicitfkByName(tt.args.database)
 			if len(tt.args.database.Fks) != tt.wantFks {
 				t.Errorf("Want %d Fks in database but got %d", tt.wantFks, len(tt.args.database.Fks))
 			}

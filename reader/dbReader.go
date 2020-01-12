@@ -5,6 +5,7 @@ import (
 	"github.com/timabell/schema-explorer/drivers"
 	"github.com/timabell/schema-explorer/options"
 	"github.com/timabell/schema-explorer/params"
+	"github.com/timabell/schema-explorer/reader/implicitfk"
 	"github.com/timabell/schema-explorer/resources"
 	"github.com/timabell/schema-explorer/schema"
 	"bufio"
@@ -56,7 +57,7 @@ func InitializeDatabase(databaseName string) (err error) {
 	}
 	Databases[databaseName].Name = databaseName
 	setupPeekList(Databases[databaseName])
-	generateImplicitKeys(Databases[databaseName])
+	implicitfk.Generate("byname", Databases[databaseName])
 	return
 }
 

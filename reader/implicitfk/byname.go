@@ -1,4 +1,4 @@
-package reader
+package implicitfk
 
 import (
 	"fmt"
@@ -121,7 +121,7 @@ func isStringIn(target string, list []string) (pos int, ok bool) {
 	return
 }
 
-func generateImplicitKeys(database *schema.Database) {
+func implicitfkByName(database *schema.Database) {
 	// 1. Build a list of field names from all tables
 	cols := make(colTableMap)
 	createColTabledMap(database, cols)
