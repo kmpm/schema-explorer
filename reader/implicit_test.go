@@ -31,7 +31,7 @@ func newFakeDb() *schema.Database {
 	return db
 }
 
-func Test_generateSyntheticKeys(t *testing.T) {
+func Test_generateImplicitKeys(t *testing.T) {
 	type args struct {
 		database *schema.Database
 	}
@@ -44,7 +44,7 @@ func Test_generateSyntheticKeys(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			generateSyntheticKeys(tt.args.database)
+			generateImplicitKeys(tt.args.database)
 			if len(tt.args.database.Fks) != tt.wantFks {
 				t.Errorf("Want %d Fks in database but got %d", tt.wantFks, len(tt.args.database.Fks))
 			}

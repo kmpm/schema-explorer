@@ -92,7 +92,7 @@ type Fk struct {
 	SourceColumns      ColumnList
 	DestinationTable   *Table
 	DestinationColumns ColumnList
-	Synthetic          bool
+	Implicit           bool
 }
 
 // Simplified fk constructor for single-column foreign keys

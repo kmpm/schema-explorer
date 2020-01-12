@@ -54,7 +54,7 @@ func createPairMap(cols colTableMap, pairs pairMap) {
 		colName := entry.colName
 		if tableCount > 1 {
 			sort.Sort(entry.tables)
-			log.Printf("candidate synthetic key for %s in tables %s", key, entry.tables)
+			log.Printf("candidate implicit key for %s in tables %s", key, entry.tables)
 			// Build table pairs
 
 			for i, t1 := range entry.tables {
@@ -121,7 +121,7 @@ func isStringIn(target string, list []string) (pos int, ok bool) {
 	return
 }
 
-func generateSyntheticKeys(database *schema.Database) {
+func generateImplicitKeys(database *schema.Database) {
 	// 1. Build a list of field names from all tables
 	cols := make(colTableMap)
 	createColTabledMap(database, cols)
@@ -159,7 +159,7 @@ func generateSyntheticKeys(database *schema.Database) {
 				DestinationTable:   destTable,
 				SourceColumns:      scols,
 				DestinationColumns: dcols,
-				Synthetic:          true,
+				Implicit:           true,
 			}
 			database.AddFk(fk)
 		}

@@ -56,7 +56,7 @@ func InitializeDatabase(databaseName string) (err error) {
 	}
 	Databases[databaseName].Name = databaseName
 	setupPeekList(Databases[databaseName])
-	generateSyntheticKeys(Databases[databaseName])
+	generateImplicitKeys(Databases[databaseName])
 	return
 }
 
